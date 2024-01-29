@@ -1,3 +1,0 @@
-/home/anushk/Desktop/crypto/COMP7402_Assignment4/cmake-build-debug/CMakeFiles/COMP7402_Assignment4.dir
-/home/anushk/Desktop/crypto/COMP7402_Assignment4/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/anushk/Desktop/crypto/COMP7402_Assignment4/cmake-build-debug/CMakeFiles/rebuild_cache.dir
