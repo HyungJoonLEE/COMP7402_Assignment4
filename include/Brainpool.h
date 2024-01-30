@@ -7,23 +7,28 @@
 #include <openssl/ecdh.h>
 #include <openssl/evp.h>
 #include <iostream>
+#include <iomanip>
+#include <string>
 
 using namespace std;
 
 class Brainpool {
 private:
-    EC_KEY *key;
+    EC_KEY *private_key;
     const EC_POINT *public_key;
-    unsigned char *secret;
-public:
-
-    void createKey();
+    unsigned char *shared_secret_key;
+    string _name;
+    void setPrivateKey();
     void setPublicKey();
-    void setSecret(EC_KEY *key, const EC_POINT *peer_pub_key,
-                              size_t *secret_len);
-    EC_KEY* getKey();
+    void setSecret(EC_KEY *key, const EC_POINT *peer_pub_key, size_t *secret_len);
+public:
+    Brainpool(string name);
+    void generateKeys();
+    void exchangePublicKey(Brainpool* &bp, size_t &len);
+    EC_KEY* getPrivateKey();
     const EC_POINT* getPublicKey();
     unsigned char* getSecret();
+    void printKeys();
 };
 
 #endif //COMP7402_ASSIGNMENT4_BRAINPOOL_H
