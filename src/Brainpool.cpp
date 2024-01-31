@@ -1,8 +1,13 @@
 #include "Brainpool.h"
 
+mutex mtx;
+condition_variable cv;
+string text;
+bool ready = false;
+bool processed = false;
 
-Brainpool::Brainpool(string name) {
-    _name = name;
+Brainpool::Brainpool(string name)
+        : AES(AESKeyLength::AES_256), _name(std::move(name)) {
     private_key = nullptr;
     public_key = nullptr;
     shared_secret_key = nullptr;
@@ -112,6 +117,30 @@ void Brainpool::exchangePublicKey(Brainpool *bp, size_t &len) {
 }
 
 
+//TODO: Implement Alice's thread
+//void Brainpool::aliceThread(Brainpool *bp) {
+//    while (1) {
+//        std::unique_lock<std::mutex> lock(mtx);
+//        std::cout << "Alice: Please enter text to encrypt: ";
+//        std::cin >> text;
+//        bp->EncryptCBC()
+//
+//        ready = true;
+//        cv.notify_one();
+//        cv.wait(lock, [] { return processed; });
+//
+//        // Resets processed to false for the next iteration
+//        processed = false;
+//    }
+//}
+
+
+//TODO: Implement Bob's thread
+//void Brainpool::bobThread() {
+//    pass;
+//}
+
+
 void freeKeys(Brainpool *bp) {
     EC_KEY_free(bp->getPrivateKey());
     OPENSSL_free(bp->getSecret());
@@ -127,4 +156,6 @@ void assertSharedSecretKey(Brainpool *bp1, Brainpool *bp2, size_t &bp1_len, size
         assert(bp1->getSecret()[i] == bp2->getSecret()[i]);
     }
 }
+
+
 

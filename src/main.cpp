@@ -1,5 +1,5 @@
 #include "Brainpool.h"
-#include <thread>
+
 
 int main(int argc, char *argv[]) {
     size_t alice_secret_len, bob_secret_len;
@@ -20,7 +20,8 @@ int main(int argc, char *argv[]) {
     alice->printKeys();
     bob->printKeys();
 
-
+    thread alice_thread(, &bob)
+    thread bob_thread(, &bob)
 
 
 

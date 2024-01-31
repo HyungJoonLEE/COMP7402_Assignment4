@@ -9,10 +9,14 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include "aes.h"
 
 using namespace std;
 
-class Brainpool {
+class Brainpool : public AES {
 private:
     EC_KEY *private_key;
     const EC_POINT *public_key;
@@ -22,13 +26,16 @@ private:
     void setPublicKey();
     void setSecret(EC_KEY *key, const EC_POINT *peer_pub_key, size_t *secret_len);
 public:
-    Brainpool(string name);
+    explicit Brainpool(string name);
     void generateKeys();
     void exchangePublicKey(Brainpool *bp, size_t &len);
     EC_KEY* getPrivateKey();
     const EC_POINT* getPublicKey();
     unsigned char* getSecret();
     void printKeys();
+
+    void aliceThread(Brainpool *bp);
+    void bobThread(Brainpool *bp);
 };
 
 void assertSharedSecretKey(Brainpool *bp1, Brainpool *bp2, size_t &bp1_len, size_t &bp2_len);
