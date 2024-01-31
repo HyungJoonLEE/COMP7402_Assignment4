@@ -34,6 +34,25 @@ void Brainpool::setPrivateKey() {
 
 void Brainpool::setPublicKey() {
     public_key = EC_KEY_get0_public_key(private_key);
+    EC_GROUP *ec_group = EC_GROUP_new_by_curve_name(NID_brainpoolP256r1);
+    const EC_POINT *pub = EC_KEY_get0_public_key(private_key);
+
+    BIGNUM *x = BN_new();
+    BIGNUM *y = BN_new();
+
+    if (EC_POINT_get_affine_coordinates_GFp(ec_group, pub, x, y, NULL)) {
+        cout << "[ " << _name << " ]" << endl;
+        cout << "X = ";
+        BN_print_fp(stdout, x);
+        putc('\n', stdout);
+        cout << "Y = ";
+        BN_print_fp(stdout, y);
+        putc('\n', stdout);
+        cout << endl;
+    }
+
+    free(x);
+    free(y);
 }
 
 
@@ -75,19 +94,37 @@ unsigned char *Brainpool::getSecret() {
 
 
 void Brainpool::printKeys() {
-    cout.setf(ios::hex | ios::uppercase | ios::showbase);
-    cout << _name  << endl;
+    BIO *bio = BIO_new_fp(stdout, BIO_NOCLOSE);
+    cout << "[ " << _name << " ]" << endl;
+    EC_KEY_print(bio, private_key, NULL);
 
-
-    cout.unsetf(ios::hex | ios::uppercase | ios::showbase);
-//    cout << "Private Key: " << private_key << endl;
-//    cout << "Public  Key: " << public_key << endl;
-//    cout << "Shared Secret Key: " << shared_secret_key << endl;
+    cout << "Shared Secret Key:" << endl;
+    for (int i = 0; i < 32; i++)
+    cout << setfill('0') << setw(2) << hex << uppercase << (int) shared_secret_key[i] << " ";
+    cout << endl << endl;
+    BIO_free(bio);
 }
 
 
-void Brainpool::exchangePublicKey(Brainpool* &bp, size_t &len) {
+void Brainpool::exchangePublicKey(Brainpool *bp, size_t &len) {
     setSecret(this->getPrivateKey(), bp->getPublicKey(), &len);
     assert(this->getSecret() != nullptr);
+}
+
+
+void freeKeys(Brainpool *bp) {
+    EC_KEY_free(bp->getPrivateKey());
+    OPENSSL_free(bp->getSecret());
+}
+
+
+void assertSharedSecretKey(Brainpool *bp1, Brainpool *bp2, size_t &bp1_len, size_t &bp2_len) {
+    // shared secret key length check
+    assert(bp1_len == bp2_len);
+
+    // shared secret key is identical
+    for (int i = 0; i < bp1_len; i++) {
+        assert(bp1->getSecret()[i] == bp2->getSecret()[i]);
+    }
 }
 

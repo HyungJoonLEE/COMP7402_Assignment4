@@ -1,4 +1,5 @@
 #include "Brainpool.h"
+#include <thread>
 
 int main(int argc, char *argv[]) {
     size_t alice_secret_len, bob_secret_len;
@@ -13,19 +14,21 @@ int main(int argc, char *argv[]) {
     // shared secret key: exchange their public keys
     alice->exchangePublicKey(bob, alice_secret_len);
     bob->exchangePublicKey(alice, bob_secret_len);
-    assert(alice_secret_len == bob_secret_len);
+    assertSharedSecretKey(alice, bob, alice_secret_len, bob_secret_len);
+
+    // print each keys
+    alice->printKeys();
+    bob->printKeys();
 
 
-    for (int i = 0; i < alice_secret_len; i++) {
-        assert(alice->getSecret()[i] == bob->getSecret()[i]);
-
-    }
 
 
-    EC_KEY_free(alice->getPrivateKey());
-    EC_KEY_free(bob->getPrivateKey());
-    OPENSSL_free(alice->getSecret());
-    OPENSSL_free(bob->getSecret());
+
+
+
+
+    freeKeys(alice);
+    freeKeys(bob);
 
     delete(alice);
     delete(bob);

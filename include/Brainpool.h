@@ -24,11 +24,14 @@ private:
 public:
     Brainpool(string name);
     void generateKeys();
-    void exchangePublicKey(Brainpool* &bp, size_t &len);
+    void exchangePublicKey(Brainpool *bp, size_t &len);
     EC_KEY* getPrivateKey();
     const EC_POINT* getPublicKey();
     unsigned char* getSecret();
     void printKeys();
 };
+
+void assertSharedSecretKey(Brainpool *bp1, Brainpool *bp2, size_t &bp1_len, size_t &bp2_len);
+void freeKeys(Brainpool *bp);
 
 #endif //COMP7402_ASSIGNMENT4_BRAINPOOL_H
