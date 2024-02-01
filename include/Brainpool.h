@@ -6,17 +6,18 @@
 #include <openssl/ec.h>
 #include <openssl/ecdh.h>
 #include <openssl/evp.h>
+#include <unistd.h>
 #include <iostream>
 #include <iomanip>
 #include <string>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
-#include "aes.h"
+#include "aes256_cbc.h"
 
 using namespace std;
 
-class Brainpool : public AES {
+class Brainpool {
 private:
     EC_KEY *private_key;
     const EC_POINT *public_key;
@@ -36,6 +37,8 @@ public:
 
     void aliceThread();
     void bobThread();
+    static string getInput(const string &prompt);
+
 };
 
 void assertSharedSecretKey(Brainpool *bp1, Brainpool *bp2, size_t &bp1_len, size_t &bp2_len);

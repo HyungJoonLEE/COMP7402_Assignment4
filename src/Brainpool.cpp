@@ -2,12 +2,14 @@
 
 mutex mtx;
 condition_variable cv;
-string encryptedTxt;
+vector<uint8_t> enc_result;
+vector<uint8_t> dec_result;
 bool ready = false;
 bool processed = false;
+const std::string iv = "1234567890123456";
+const aes256_cbc encryptor(str_to_bytes(iv));
 
-Brainpool::Brainpool(string name)
-        : AES(AESKeyLength::AES_256), _name(std::move(name)) {
+Brainpool::Brainpool(string name) : _name(std::move(name)) {
     private_key = nullptr;
     public_key = nullptr;
     shared_secret_key = nullptr;
@@ -117,43 +119,60 @@ void Brainpool::exchangePublicKey(Brainpool *bp, size_t &len) {
 }
 
 
-//TODO: Implement Alice's thread
+// TODO: Implement Alice's thread
 void Brainpool::aliceThread() {
-        vector<unsigned char> pv;
-        vector<unsigned char> key(shared_secret_key, shared_secret_key + 32);
+    std::vector<uint8_t> key(this->getSecret(), this->getSecret() + 32);
+    while(1) {
+        unique_lock<std::mutex> lock(mtx);
 
-        std::unique_lock<std::mutex> lock(mtx);
-        string plainText = this->getHexInput("Enter hexadecimal plain text: ");
-        pv = this->hexStringToVector(plainText);
-        encryptedTxt = this->vectorToString(this->EncryptECB(pv, key));
+        string plainText = this->getInput("Enter plain text: ");
+        encryptor.encrypt(key, str_to_bytes(plainText), enc_result);
 
-        cout << "Encrypted Text: " << encryptedTxt << endl << endl;
-        ready = true;
-        cv.notify_one();
-        cv.wait(lock, [] { return processed; });
+        cout << "Encrypted Text: " << endl;
+        for (auto elem : enc_result) {
+            std::cout << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(elem) << ' ';
+        }
+        std::cout << std::endl;
 
-        // Resets processed to false for the next iteration
-        processed = false;
-        pv.clear();
-
+        ready = true; // Set ready for Bob.
+        cv.notify_one(); // Notify Bob's thread
+        cv.wait(lock, [] { return processed; }); // Wait for Bob to process
+        processed = false; // Reset processed for the next iteration
+        dec_result.clear();
+    }
 }
 
 
 //TODO: Implement Bob's thread
 void Brainpool::bobThread() {
-    string str_ssk = reinterpret_cast<const char*>(shared_secret_key);
-        vector<unsigned char> ev;
-        vector<unsigned char> key(shared_secret_key, shared_secret_key + 32);
+    vector<uint8_t> key(this->getSecret(), this->getSecret() + 32);
 
-        std::unique_lock<std::mutex> lock(mtx);
-        cv.wait(lock, [] {return ready;});
-        ev = this->hexStringToVector(encryptedTxt);
-        string plainText = this->vectorToString(this->DecryptECB(ev, key));
-        cout << "Original Text: " << plainText << endl << endl;
+    while(1) {
+        unique_lock<mutex> lock(mtx);
+
+        // Wait for Alice to encrypt and notify.
+        cv.wait(lock, [] { return ready; });
+
+        encryptor.decrypt(key, enc_result, dec_result);
+        cout << "Original Text: ";
+        cout << bytes_to_str(dec_result) << endl << endl;
+
         ready = false;
         processed = true;
         cv.notify_one();
+        enc_result.clear();
+    }
+}
 
+
+string Brainpool::getInput(const string &prompt) {
+    string input;
+    do {
+        cout << prompt;
+        cin >> input;
+
+    } while (input.empty());
+    return input;
 }
 
 
