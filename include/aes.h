@@ -8,6 +8,9 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <iomanip>
+#include <cmath>
+
 
 using namespace std;
 
@@ -115,6 +118,7 @@ public:
     bool isValidHex(const std::string& str);
     string getHexInput(const std::string& prompt);
     vector<unsigned char> hexStringToVector(const std::string& hexStr);
+    string vectorToString(const std::vector<unsigned char>& vec);
 };
 
 const unsigned char sbox[16][16] = {

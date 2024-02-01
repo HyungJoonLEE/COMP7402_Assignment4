@@ -492,3 +492,12 @@ vector<unsigned char> AES::hexStringToVector(const string &hexStr) {
 
     return ucharArray;
 }
+
+
+string AES::vectorToString(const vector<unsigned char> &vec) {
+    std::ostringstream oss;
+    for (unsigned int i = 0; i < vec.size(); i++) {
+        oss << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(vec[i]) << " ";
+    }
+    return oss.str();
+}

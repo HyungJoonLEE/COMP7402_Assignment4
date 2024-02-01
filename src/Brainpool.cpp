@@ -2,7 +2,7 @@
 
 mutex mtx;
 condition_variable cv;
-string text;
+string encryptedTxt;
 bool ready = false;
 bool processed = false;
 
@@ -118,27 +118,43 @@ void Brainpool::exchangePublicKey(Brainpool *bp, size_t &len) {
 
 
 //TODO: Implement Alice's thread
-//void Brainpool::aliceThread(Brainpool *bp) {
-//    while (1) {
-//        std::unique_lock<std::mutex> lock(mtx);
-//        std::cout << "Alice: Please enter text to encrypt: ";
-//        std::cin >> text;
-//        bp->EncryptCBC()
-//
-//        ready = true;
-//        cv.notify_one();
-//        cv.wait(lock, [] { return processed; });
-//
-//        // Resets processed to false for the next iteration
-//        processed = false;
-//    }
-//}
+void Brainpool::aliceThread() {
+        vector<unsigned char> pv;
+        vector<unsigned char> key(shared_secret_key, shared_secret_key + 32);
+
+        std::unique_lock<std::mutex> lock(mtx);
+        string plainText = this->getHexInput("Enter hexadecimal plain text: ");
+        pv = this->hexStringToVector(plainText);
+        encryptedTxt = this->vectorToString(this->EncryptECB(pv, key));
+
+        cout << "Encrypted Text: " << encryptedTxt << endl << endl;
+        ready = true;
+        cv.notify_one();
+        cv.wait(lock, [] { return processed; });
+
+        // Resets processed to false for the next iteration
+        processed = false;
+        pv.clear();
+
+}
 
 
 //TODO: Implement Bob's thread
-//void Brainpool::bobThread() {
-//    pass;
-//}
+void Brainpool::bobThread() {
+    string str_ssk = reinterpret_cast<const char*>(shared_secret_key);
+        vector<unsigned char> ev;
+        vector<unsigned char> key(shared_secret_key, shared_secret_key + 32);
+
+        std::unique_lock<std::mutex> lock(mtx);
+        cv.wait(lock, [] {return ready;});
+        ev = this->hexStringToVector(encryptedTxt);
+        string plainText = this->vectorToString(this->DecryptECB(ev, key));
+        cout << "Original Text: " << plainText << endl << endl;
+        ready = false;
+        processed = true;
+        cv.notify_one();
+
+}
 
 
 void freeKeys(Brainpool *bp) {

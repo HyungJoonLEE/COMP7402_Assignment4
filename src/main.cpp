@@ -20,11 +20,10 @@ int main(int argc, char *argv[]) {
     alice->printKeys();
     bob->printKeys();
 
-    thread alice_thread(, &bob)
-    thread bob_thread(, &bob)
-
-
-
+    thread alice_thread(&Brainpool::aliceThread, alice);
+    thread bob_thread(&Brainpool::bobThread, bob);
+    alice_thread.join();
+    bob_thread.join();
 
 
 

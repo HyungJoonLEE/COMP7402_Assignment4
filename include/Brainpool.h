@@ -34,8 +34,8 @@ public:
     unsigned char* getSecret();
     void printKeys();
 
-    void aliceThread(Brainpool *bp);
-    void bobThread(Brainpool *bp);
+    void aliceThread();
+    void bobThread();
 };
 
 void assertSharedSecretKey(Brainpool *bp1, Brainpool *bp2, size_t &bp1_len, size_t &bp2_len);
