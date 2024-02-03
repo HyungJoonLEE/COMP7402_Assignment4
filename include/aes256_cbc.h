@@ -16,23 +16,25 @@
 #include <openssl/aes.h>
 #include <openssl/crypto.h>
 
+using namespace std;
+
 #define DECL_OPENSSL_PTR(tname, free_func) \
     struct openssl_##tname##_dtor {            \
         void operator()(tname* v) {        \
             free_func(v);              \
         }                              \
     };                                 \
-    typedef std::unique_ptr<tname, openssl_##tname##_dtor> tname##_t
+    typedef unique_ptr<tname, openssl_##tname##_dtor> tname##_t
 
 
 DECL_OPENSSL_PTR(EVP_CIPHER_CTX, ::EVP_CIPHER_CTX_free);
 
-struct error : public std::exception {
+struct error : public exception {
 private:
-    std::string m_msg;
+    string m_msg;
 
 public:
-    error(const std::string& message)
+    error(const string& message)
             : m_msg(message) {
     }
 
@@ -48,13 +50,13 @@ public:
 struct openssl_error: public virtual error {
 private:
     int m_code = -1;
-    std::string m_msg;
+    string m_msg;
 
 public:
-    openssl_error(int code, const std::string& message)
+    openssl_error(int code, const string& message)
             : error(message),
               m_code(code) {
-        std::stringstream ss;
+        stringstream ss;
         ss << "[" << m_code << "]: " << message;
         m_msg = ss.str();
 
@@ -63,7 +65,7 @@ public:
     openssl_error(int code, const char* msg)
             : error(msg),
               m_code(code) {
-        std::stringstream ss;
+        stringstream ss;
         ss << "[" << m_code << "]: " << msg;
         m_msg = ss.str();
     }
@@ -80,15 +82,15 @@ static void throw_if_error(int res = 1, const char* file = nullptr, uint64_t lin
         if (errc == 0) {
             return;
         }
-        std::vector<std::string> errors;
+        vector<string> errors;
         while (errc != 0) {
-            std::vector<uint8_t> buf(256);
+            vector<uint8_t> buf(256);
             ERR_error_string(errc, (char*) buf.data());
-            errors.push_back(std::string(buf.begin(), buf.end()));
+            errors.push_back(string(buf.begin(), buf.end()));
             errc = ERR_get_error();
         }
 
-        std::stringstream ss;
+        stringstream ss;
         ss << "\n";
         for (auto&& err : errors) {
             if (file != nullptr) {
@@ -96,21 +98,21 @@ static void throw_if_error(int res = 1, const char* file = nullptr, uint64_t lin
             }
             ss << err << "\n";
         }
-        const std::string err_all = ss.str();
+        const string err_all = ss.str();
         throw openssl_error(errc, err_all);
     }
 }
 
 class aes256_cbc {
 private:
-    std::vector<uint8_t> m_iv;
+    vector<uint8_t> m_iv;
 
 public:
-    explicit aes256_cbc(std::vector<uint8_t> iv)
-            : m_iv(std::move(iv)) {
+    explicit aes256_cbc(vector<uint8_t> iv)
+            : m_iv(move(iv)) {
     }
 
-    void encrypt(const std::vector<uint8_t>& key, const std::vector<uint8_t>& message, std::vector<uint8_t>& output) const {
+    void encrypt(const vector<uint8_t>& key, const vector<uint8_t>& message, vector<uint8_t>& output) const {
         output.resize(message.size() * AES_BLOCK_SIZE);
         int inlen = message.size();
         int outlen = 0;
@@ -120,9 +122,9 @@ public:
         throw_if_error(1, __FILE__, __LINE__);
 
         // todo: sha256 function
-        // const std::vector<uint8_t> enc_key = key.size() != 32 ? sha256(key) : key;
+        // const vector<uint8_t> enc_key = key.size() != 32 ? sha256(key) : key;
 
-        const std::vector<uint8_t> enc_key = key;
+        const vector<uint8_t> enc_key = key;
 
         int res;
         res = EVP_EncryptInit(ctx.get(), EVP_aes_256_cbc(), enc_key.data(), m_iv.data());
@@ -137,7 +139,7 @@ public:
         output.resize(total_out);
     }
 
-    void decrypt(const std::vector<uint8_t>& key, const std::vector<uint8_t>& message, std::vector<uint8_t>& output) const {
+    void decrypt(const vector<uint8_t>& key, const vector<uint8_t>& message, vector<uint8_t>& output) const {
         output.resize(message.size() * 3);
         int outlen = 0;
         size_t total_out = 0;
@@ -145,12 +147,12 @@ public:
         EVP_CIPHER_CTX_t ctx(EVP_CIPHER_CTX_new());
         throw_if_error();
 
-        // todo: sha256 function const std::vector<uint8_t> enc_key = key.size() != 32 ? sha256(key.to_string()) : key;
+        // todo: sha256 function const vector<uint8_t> enc_key = key.size() != 32 ? sha256(key.to_string()) : key;
 
         // means you have already 32 bytes keys
-        const std::vector<uint8_t> enc_key = key;
-        std::vector<uint8_t> target_message;
-        std::vector<uint8_t> iv;
+        const vector<uint8_t> enc_key = key;
+        vector<uint8_t> target_message;
+        vector<uint8_t> iv;
 
         iv = m_iv;
         target_message = message;
@@ -171,16 +173,16 @@ public:
     }
 };
 
-static std::vector<uint8_t> str_to_bytes(const std::string& message) {
-    std::vector<uint8_t> out(message.size());
+static vector<uint8_t> str_to_bytes(const string& message) {
+    vector<uint8_t> out(message.size());
     for(size_t n = 0; n < message.size(); n++) {
         out[n] = message[n];
     }
     return out;
 }
 
-static std::string bytes_to_str(const std::vector<uint8_t>& bytes) {
-    return std::string(bytes.begin(), bytes.end());
+static string bytes_to_str(const vector<uint8_t>& bytes) {
+    return string(bytes.begin(), bytes.end());
 }
 
 

@@ -122,19 +122,22 @@ void Brainpool::exchangePublicKey(Brainpool *bp, size_t &len) {
 // TODO: Implement Alice's thread
 void Brainpool::aliceThread() {
     vector<uint8_t> key(this->getSecret(), this->getSecret() + 32);
-
+    int count = 0;
     while(1) {
         unique_lock<mutex> lock(mtx);
 
         string plainText = getInput("Enter plain text: ");
         encryptor.encrypt(key, str_to_bytes(plainText), enc_result);
 
-        cout << "Encrypted Text: " << endl;
-//        cout << bytes_to_str(enc_result) << endl << endl;
+        cout << "Encrypted Text: " << bytes_to_str(enc_result) << endl;
         for (auto elem : enc_result) {
             cout << hex << setfill('0') << setw(2) << static_cast<int>(elem) << ' ';
+            count++;
+            if (count == 16) {
+                cout << endl;
+                count = 0;
+            }
         }
-        cout << endl;
 
         ready = true; // Set ready for Bob.
         cv.notify_one(); // Notify Bob's thread
@@ -154,9 +157,7 @@ void Brainpool::bobThread() {
         cv.wait(lock, [] { return ready; }); // Wait for Alice to encrypt and notify.
 
         encryptor.decrypt(key, enc_result, dec_result);
-        cout << "Original Text: ";
-        cout << bytes_to_str(dec_result) << endl << endl;
-
+        cout << ">> Original Text: " << bytes_to_str(dec_result) << endl << endl;
         ready = false;
         processed = true;
         cv.notify_one();
