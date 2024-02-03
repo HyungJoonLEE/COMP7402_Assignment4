@@ -119,8 +119,7 @@ void Brainpool::exchangePublicKey(Brainpool *bp, size_t &len) {
 }
 
 
-// TODO: Implement Alice's thread
-void Brainpool::aliceThread() {
+void Brainpool::bobThread() {
     vector<uint8_t> key(this->getSecret(), this->getSecret() + 32);
     int count = 0;
     while(1) {
@@ -139,22 +138,21 @@ void Brainpool::aliceThread() {
             }
         }
 
-        ready = true; // Set ready for Bob.
-        cv.notify_one(); // Notify Bob's thread
-        cv.wait(lock, [] { return processed; }); // Wait for Bob to process
+        ready = true; // Set ready for Alice.
+        cv.notify_one(); // Notify Alice's thread
+        cv.wait(lock, [] { return processed; }); // Wait for Alice to process
         processed = false; // Reset processed for the next iteration
         dec_result.clear();
     }
 }
 
 
-//TODO: Implement Bob's thread
-void Brainpool::bobThread() {
+void Brainpool::aliceThread() {
     vector<uint8_t> key(this->getSecret(), this->getSecret() + 32);
 
     while(1) {
         unique_lock<mutex> lock(mtx);
-        cv.wait(lock, [] { return ready; }); // Wait for Alice to encrypt and notify.
+        cv.wait(lock, [] { return ready; }); // Wait for Bob to encrypt and notify.
 
         encryptor.decrypt(key, enc_result, dec_result);
         cout << ">> Original Text: " << bytes_to_str(dec_result) << endl << endl;
@@ -171,6 +169,7 @@ string Brainpool::getInput(const string &prompt) {
     do {
         cout << prompt;
         getline(cin, input);  // getline - read the whole line
+        input[input.size()] = '0';
     } while (input.empty());
     return input;
 }

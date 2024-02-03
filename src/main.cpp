@@ -3,26 +3,26 @@
 int main(int argc, char *argv[]) {
     size_t alice_secret_len, bob_secret_len;
 
-    auto *alice = new Brainpool("Alice");
     auto *bob = new Brainpool("Bob");
+    auto *alice = new Brainpool("Alice");
 
     // generate private, public key
-    alice->generateKeys();
     bob->generateKeys();
+    alice->generateKeys();
 
     // shared secret key: exchange their public keys
-    alice->exchangePublicKey(bob, alice_secret_len);
     bob->exchangePublicKey(alice, bob_secret_len);
+    alice->exchangePublicKey(bob, alice_secret_len);
     assertSharedSecretKey(alice, bob, alice_secret_len, bob_secret_len);
 
     // print each keys
-    alice->printKeys();
     bob->printKeys();
+    alice->printKeys();
 
-    thread alice_thread(&Brainpool::aliceThread, alice);
     thread bob_thread(&Brainpool::bobThread, bob);
-    alice_thread.join();
+    thread alice_thread(&Brainpool::aliceThread, alice);
     bob_thread.join();
+    alice_thread.join();
 
 
     freeKeys(alice);
