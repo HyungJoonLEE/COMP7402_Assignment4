@@ -35,12 +35,14 @@ int main(int argc, char *argv[]) {
 //    const aes256_cbc encryptor(str_to_bytes(iv));
 //    std::vector<uint8_t> enc_result;
 //    encryptor.encrypt(key, str_to_bytes(message), enc_result);
+//    std::cout << bytes_to_str(enc_result) << std::endl;
 //
 //    std::vector<uint8_t> dec_result;
 //    encryptor.decrypt(key, enc_result, dec_result);
+//    cout << "size: " << dec_result.size() << endl;
 //
 //    std::cout << bytes_to_str(dec_result) << std::endl;
-    // output: hello world
+//     output: hello world
 
 
 

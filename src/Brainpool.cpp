@@ -6,10 +6,10 @@ vector<uint8_t> enc_result;
 vector<uint8_t> dec_result;
 bool ready = false;
 bool processed = false;
-const std::string iv = "1234567890123456";
+const string iv = "1234567890123456";
 const aes256_cbc encryptor(str_to_bytes(iv));
 
-Brainpool::Brainpool(string name) : _name(std::move(name)) {
+Brainpool::Brainpool(string name) : _name(move(name)) {
     private_key = nullptr;
     public_key = nullptr;
     shared_secret_key = nullptr;
@@ -121,18 +121,20 @@ void Brainpool::exchangePublicKey(Brainpool *bp, size_t &len) {
 
 // TODO: Implement Alice's thread
 void Brainpool::aliceThread() {
-    std::vector<uint8_t> key(this->getSecret(), this->getSecret() + 32);
-    while(1) {
-        unique_lock<std::mutex> lock(mtx);
+    vector<uint8_t> key(this->getSecret(), this->getSecret() + 32);
 
-        string plainText = this->getInput("Enter plain text: ");
+    while(1) {
+        unique_lock<mutex> lock(mtx);
+
+        string plainText = getInput("Enter plain text: ");
         encryptor.encrypt(key, str_to_bytes(plainText), enc_result);
 
         cout << "Encrypted Text: " << endl;
+//        cout << bytes_to_str(enc_result) << endl << endl;
         for (auto elem : enc_result) {
-            std::cout << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(elem) << ' ';
+            cout << hex << setfill('0') << setw(2) << static_cast<int>(elem) << ' ';
         }
-        std::cout << std::endl;
+        cout << endl;
 
         ready = true; // Set ready for Bob.
         cv.notify_one(); // Notify Bob's thread
@@ -149,9 +151,7 @@ void Brainpool::bobThread() {
 
     while(1) {
         unique_lock<mutex> lock(mtx);
-
-        // Wait for Alice to encrypt and notify.
-        cv.wait(lock, [] { return ready; });
+        cv.wait(lock, [] { return ready; }); // Wait for Alice to encrypt and notify.
 
         encryptor.decrypt(key, enc_result, dec_result);
         cout << "Original Text: ";
@@ -169,8 +169,7 @@ string Brainpool::getInput(const string &prompt) {
     string input;
     do {
         cout << prompt;
-        cin >> input;
-
+        getline(cin, input);  // getline - read the whole line
     } while (input.empty());
     return input;
 }
