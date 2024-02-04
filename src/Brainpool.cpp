@@ -172,7 +172,7 @@ string Brainpool::getInput(const string &prompt) {
     do {
         cout << prompt;
         getline(cin, input);  // getline - read the whole line
-        input[input.size()] = '0';
+        input[input.size()] = '\0';
     } while (input.empty());
     return input;
 }
