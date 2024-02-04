@@ -106,8 +106,9 @@ void Brainpool::printKeys() {
     EC_KEY_print(bio, private_key, NULL);
 
     cout << "Shared Secret Key:" << endl;
-    for (int i = 0; i < 32; i++)
-    cout << setfill('0') << setw(2) << hex << uppercase << (int) shared_secret_key[i] << " ";
+    for (int i = 0; i < 32; i++) {
+        cout << setfill('0') << setw(2) << hex << uppercase << (int) shared_secret_key[i] << " ";
+    }
     cout << endl << endl;
     BIO_free(bio);
 }
@@ -124,7 +125,8 @@ void Brainpool::bobThread() {
     int count = 0;
     while(1) {
         unique_lock<mutex> lock(mtx);
-
+        signal(SIGINT, reinterpret_cast<__sighandler_t>(my_handler));
+        cout << "Ctrl + C twice to Exit the program\n" << endl;
         string plainText = getInput("Enter plain text: ");
         encryptor.encrypt(key, str_to_bytes(plainText), enc_result);
 
@@ -156,6 +158,7 @@ void Brainpool::aliceThread() {
 
         encryptor.decrypt(key, enc_result, dec_result);
         cout << ">> Original Text: " << bytes_to_str(dec_result) << endl << endl;
+
         ready = false;
         processed = true;
         cv.notify_one();
@@ -192,4 +195,7 @@ void assertSharedSecretKey(Brainpool *bp1, Brainpool *bp2, size_t &bp1_len, size
 }
 
 
-
+void my_handler(sig_t s) {
+    cout << "Caught signal " << s << " [ Exit the program ]" << endl;
+    exit(1);
+}
