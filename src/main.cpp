@@ -19,6 +19,7 @@ int main(int argc, char *argv[]) {
     bob->printKeys();
     alice->printKeys();
 
+    // thread operation Bob encrypt, Alice decrypt
     thread bob_thread(&Brainpool::bobThread, bob);
     thread alice_thread(&Brainpool::aliceThread, alice);
     bob_thread.join();
