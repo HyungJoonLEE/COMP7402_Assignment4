@@ -1,3 +1,16 @@
+/*---------------------------------------------------------------------------------------------
+--	SOURCE FILE:	Ass4-supplement.pdf
+--  LINK:           https://github.com/aashishdugar/ECDH-Algorithm/blob/master/ecdh-openssl.c
+--                  ecdh-openssl.c
+--
+--	DATE:			Feb 02, 2024
+--				    Added personal function for the assignment 4
+--
+--	DESIGNERS:      Aashish Dugar
+--
+--	STUDENT:		HyungJoon LEE
+-------------------------------------------------------------------------------------------------*/
+
 #include "Brainpool.h"
 
 mutex mtx;
